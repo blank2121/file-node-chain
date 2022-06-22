@@ -1,8 +1,10 @@
+from cmath import e
 from datetime import datetime
 import os
 import json
 import platform
 from time import time
+import ast
 
 
 class Nodes:
@@ -44,7 +46,6 @@ class Nodes:
             pass
 
         self.json_data = json_data
-        files_in_dir = os.listdir(self.dir)
 
 
         if timestamp:
@@ -54,33 +55,72 @@ class Nodes:
         
         print(os.listdir(self.dir))
 
-        if len(files_in_dir) == 0:
-            with open(f"{self.dir}head_file.json", 'w') as f:
-                data = {
-                    "timestamp": str(self.timestamp),
-                    "next": f"{self.dir}{1}.json"
-                }
-                json.dump(data, f)
+    
         
-        elif len(files_in_dir) >= 0:
-            with open(f"{self.dir}{len(os.listdir(self.dir))}.json", "w") as f:
+        
+        with open(f"{self.dir}{len(os.listdir(self.dir))+1}.json", "w") as f:
                 
-                data = {
-                    "timestamp": str(self.timestamp),
-                    "next": f"{self.dir}{len(os.listdir(self.dir))}.json",
-                    "data": self.json_data
-                }
-                json.dump(data, f)
+            data = {
+                "timestamp": str(self.timestamp),
+                "next": f"{self.dir}{len(os.listdir(self.dir))+1}.json",
+                "data": self.json_data
+            }
+            json.dump(data, f)
 
 
     def deleteNodeObject(self):
         pass
 
-    def findNodeObject(self):
-        pass
-      
+    def findNodeObject(self, search_query: dict, method: str):
+        """the current methods are:
+        
+        "data match" and "contains"
+
+        for data match, enter the exact json data that needs to be found
+
+        for contains, enter the json data that you want i.e. in the example below:
+
+            {"id": 140,
+            "name": Ezra,
+            "and": "so on"}
+
+        to find "id", enter in: {"id": 140} to find the file with that id
+        """
+        if method == "data match":
+            total_files = []
+            for files in os.listdir(self.dir):
+                with open(f"{self.dir}{files}", "r") as f:
+                    data = json.load(f)
+                    if data["data"] == search_query:
+                        total_files.append(files)
+            return total_files
+        elif method == "contains":
+            total_files = []
+
+            str_list = str(str(search_query.keys())[10:-1])
+            key_list = [i for i in ast.literal_eval(str_list)]
+            val_list = list(search_query.values())
+
+            for files in os.listdir(self.dir):
+                with open(f"{self.dir}{files}", "r") as f:
+                    data = json.load(f)["data"]
+                    for i in range(len(val_list)):
+                        try:
+                            if data[key_list[i]] == val_list[i]:
+                                if files in total_files:
+                                    pass
+                                else:
+                                    total_files.append(files)
+                        except KeyError:
+                            pass
+            
+            return total_files
+
+                    
+                    
             
 
 new = Nodes(directory = "/Users/winstonwalter/Desktop/demo_file/") 
 
-new.makeNodeObject(json_data={"hello": "world"}, timestamp=True)
+#new.makeNodeObject(json_data={"hello": "world"}, timestamp=True)
+print(new.findNodeObject({"id": 1400, "hello": "world"}, method="contains"))
