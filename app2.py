@@ -9,7 +9,12 @@ class Nodes:
     def __init__(self, directory: str):
         """enter the fill directory, enter the json data that you want in the file,
         and enter True or False if you want to add a time stamp of the creation
-        date"""
+        date
+        
+        *IMPORTANT NOTE* 
+
+        when entering a directory, make sure to always end it with a slash and not
+        the name of the file"""
 
         
 
@@ -33,14 +38,39 @@ class Nodes:
 
     
     def makeNodeObject(self, json_data, timestamp: bool):
+        try:
+            os.system(f"rm {self.dir}.DS_Store")
+        except Exception as e:
+            pass
+
         self.json_data = json_data
+        files_in_dir = os.listdir(self.dir)
+
 
         if timestamp:
             self.timestamp = datetime.now()
         else:
             self.timestamp = None
         
-        print(os.listdir(self.directory))
+        print(os.listdir(self.dir))
+
+        if len(files_in_dir) == 0:
+            with open(f"{self.dir}head_file.json", 'w') as f:
+                data = {
+                    "timestamp": str(self.timestamp),
+                    "next": f"{self.dir}{1}.json"
+                }
+                json.dump(data, f)
+        
+        elif len(files_in_dir) >= 0:
+            with open(f"{self.dir}{len(os.listdir(self.dir))}.json", "w") as f:
+                
+                data = {
+                    "timestamp": str(self.timestamp),
+                    "next": f"{self.dir}{len(os.listdir(self.dir))}.json",
+                    "data": self.json_data
+                }
+                json.dump(data, f)
 
 
     def deleteNodeObject(self):
@@ -51,6 +81,6 @@ class Nodes:
       
             
 
-new = Nodes(directory = "/Users/winstonwalter/Desktop/file-node-chain/app2.py") 
+new = Nodes(directory = "/Users/winstonwalter/Desktop/demo_file/") 
 
-new.makeNodeObject(json_data={}, timestamp=True)
+new.makeNodeObject(json_data={"hello": "world"}, timestamp=True)
